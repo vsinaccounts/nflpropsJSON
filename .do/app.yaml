@@ -1,0 +1,37 @@
+name: nfl-props-fetcher
+region: nyc
+
+workers:
+  - name: nfl-props-worker
+    github:
+      repo: vsinaccounts/nflpropsJSON
+      branch: main
+      deploy_on_push: true
+    
+    # Run command - continuous worker
+    run_command: python3 worker.py
+    
+    # Environment
+    environment_slug: python
+    
+    # Instance size (smallest available)
+    instance_size_slug: basic-xxs
+    instance_count: 1
+    
+    # Build configuration
+    build_command: pip install -r requirements.txt
+    
+    # Optional: Add DO Spaces credentials to auto-upload
+    envs:
+      - key: DO_SPACE_NAME
+        value: "your-space-name"
+        type: SECRET
+      - key: DO_SPACE_REGION
+        value: "nyc3"
+      - key: DO_ACCESS_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: DO_SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+
