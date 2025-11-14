@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Props Viewer - Example Frontend</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .stats {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        input, select {
+            padding: 10px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        
+        th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        tr:hover {
+            background: #f8f9ff;
+        }
+        
+        .over {
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .under {
+            background: #ffebee;
+            color: #c62828;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .margin-high {
+            color: #2e7d32;
+            font-weight: 600;
+        }
+        
+        .margin-medium {
+            color: #f57c00;
+            font-weight: 600;
+        }
+        
+        .margin-low {
+            color: #666;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .last-updated {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            table {
+                font-size: 12px;
+            }
+            
+            th, td {
+                padding: 8px 5px;
+            }
+            
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏈 NFL Passing Yards Props</h1>
+        
+        <div class="stats">
+            <div class="filters">
+                <input type="text" id="searchPlayer" placeholder="Search player name..." onkeyup="filterData()">
+                <select id="filterResult" onchange="filterData()">
+                    <option value="">All Projections</option>
+                    <option value="Over">Over Only</option>
+                    <option value="Under">Under Only</option>
+                </select>
+                <select id="sortBy" onchange="sortData()">
+                    <option value="margin">Sort by Margin %</option>
+                    <option value="player">Sort by Player</option>
+                    <option value="projection">Sort by Projection</option>
+                </select>
+            </div>
+            
+            <div id="content">
+                <div class="loading">Loading data...</div>
+            </div>
+        </div>
+        
+        <div class="last-updated" id="lastUpdated"></div>
+    </div>
+
+    <script>
+        let allData = [];
+        
+        // UPDATE THIS URL to point to your JSON file
+        // Options:
+        // 1. Local file: './NFLprops.json'
+        // 2. Your server: 'https://your-domain.com/NFLprops.json'
+        // 3. Digital Ocean Spaces: 'https://your-space.nyc3.cdn.digitaloceanspaces.com/NFLprops.json'
+        const API_URL = './NFLprops.json';
+        
+        async function fetchData() {
+            try {
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                allData = await response.json();
+                renderTable(allData);
+                
+                document.getElementById('lastUpdated').textContent = 
+                    `Last updated: ${new Date().toLocaleString()}`;
+            } catch (error) {
+                document.getElementById('content').innerHTML = 
+                    `<div class="error">Error loading data: ${error.message}</div>`;
+            }
+        }
+        
+        function renderTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('content').innerHTML = 
+                    '<div class="error">No data available</div>';
+                return;
+            }
+            
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Team</th>
+                            <th>Game</th>
+                            <th>Projection</th>
+                            <th>DK Line</th>
+                            <th>Margin</th>
+                            <th>Margin %</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(player => `
+                            <tr>
+                                <td>${player.StatRank}</td>
+                                <td><strong>${player.PlayerName}</strong></td>
+                                <td>${player.TeamDisplay}</td>
+                                <td>${player.GameDetailsLONG}</td>
+                                <td>${parseFloat(player.PROJ).toFixed(1)}</td>
+                                <td>${player.DKVALUE}</td>
+                                <td class="${getMarginClass(player.MARGINPCT)}">
+                                    ${parseFloat(player.MARGIN).toFixed(1)}
+                                </td>
+                                <td class="${getMarginClass(player.MARGINPCT)}">
+                                    ${(parseFloat(player.MARGINPCT) * 100).toFixed(1)}%
+                                </td>
+                                <td>
+                                    <span class="${player.PROJECTEDRESULT.toLowerCase()}">
+                                        ${player.PROJECTEDRESULT}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('content').innerHTML = html;
+        }
+        
+        function getMarginClass(marginPct) {
+            const pct = parseFloat(marginPct);
+            if (pct >= 0.15) return 'margin-high';
+            if (pct >= 0.05) return 'margin-medium';
+            return 'margin-low';
+        }
+        
+        function filterData() {
+            const searchTerm = document.getElementById('searchPlayer').value.toLowerCase();
+            const resultFilter = document.getElementById('filterResult').value;
+            
+            let filtered = allData.filter(player => {
+                const matchesSearch = player.PlayerName.toLowerCase().includes(searchTerm);
+                const matchesResult = !resultFilter || player.PROJECTEDRESULT === resultFilter;
+                return matchesSearch && matchesResult;
+            });
+            
+            renderTable(filtered);
+        }
+        
+        function sortData() {
+            const sortBy = document.getElementById('sortBy').value;
+            let sorted = [...allData];
+            
+            switch(sortBy) {
+                case 'margin':
+                    sorted.sort((a, b) => parseFloat(b.MARGINPCT) - parseFloat(a.MARGINPCT));
+                    break;
+                case 'player':
+                    sorted.sort((a, b) => a.PlayerName.localeCompare(b.PlayerName));
+                    break;
+                case 'projection':
+                    sorted.sort((a, b) => parseFloat(b.PROJ) - parseFloat(a.PROJ));
+                    break;
+            }
+            
+            renderTable(sorted);
+        }
+        
+        // Fetch data on page load
+        fetchData();
+        
+        // Auto-refresh every 5 minutes
+        setInterval(fetchData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
+
