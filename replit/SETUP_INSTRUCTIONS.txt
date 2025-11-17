@@ -1,0 +1,93 @@
+🏈 NFL PROPS API - REPLIT SETUP INSTRUCTIONS
+================================================================
+
+QUICK 5-MINUTE SETUP:
+
+1. CREATE REPL
+   - Go to replit.com
+   - Click "Create Repl"
+   - Choose "Python"
+   - Name it: nfl-props-api
+
+2. UPLOAD FILES
+   - Upload these 3 files to your Repl:
+     • main.py
+     • requirements.txt
+     • .replit
+
+3. ADD SECRET (IMPORTANT!)
+   - Click 🔒 Secrets icon (lock in left sidebar)
+   - Add new secret:
+     Key: NFL_API_URL
+     Value: https://xml.sportsdatasolutions.com/api/v2/?reportid=nflprojections&view=passingyards&apikey=gBCLfS2nw68j38874HJrgscQtG9znGWEP4bW
+
+4. RUN
+   - Click green "Run" button
+   - Wait 30 seconds for dependencies to install
+   - Server will start and fetch data
+
+5. GET YOUR URL
+   - Copy the URL from Replit (top of page)
+   - Your API endpoint: https://your-url.repl.co/api/props
+   - Use this in your frontend!
+
+================================================================
+
+WHAT IT DOES:
+
+✅ Fetches NFL data every hour automatically
+✅ Converts to clean JSON format
+✅ Caches data (fast responses)
+✅ Hides XML source completely (secret)
+✅ Serves via API endpoint
+✅ CORS enabled (works with any frontend)
+
+================================================================
+
+USE IN FRONTEND:
+
+fetch('https://your-url.repl.co/api/props')
+  .then(res => res.json())
+  .then(data => console.log(data));
+
+================================================================
+
+VERIFY IT'S WORKING:
+
+1. Visit: https://your-url.repl.co
+   Should see documentation page
+
+2. Visit: https://your-url.repl.co/api/props
+   Should see JSON data
+
+3. Visit: https://your-url.repl.co/api/status
+   Should see "healthy" status
+
+================================================================
+
+TROUBLESHOOTING:
+
+Problem: "NFL_API_URL not set"
+Fix: Add secret in Replit (🔒 icon)
+
+Problem: Server stops running
+Fix: Need Replit "Always On" ($20/mo)
+
+Problem: No data showing
+Fix: Check console logs for errors
+
+================================================================
+
+SUPPORT:
+
+- Check README.md for full documentation
+- View console logs in Replit for debugging
+- Check /api/status endpoint for health info
+
+================================================================
+
+YOU'RE DONE! 🎉
+
+Your secure API is ready. The XML source is hidden.
+Use the API URL in your frontend to fetch data.
+
